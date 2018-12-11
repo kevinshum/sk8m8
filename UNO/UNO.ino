@@ -1,13 +1,13 @@
-//Declare pin functions on Redboard
+// Declare pin functions on Redboard
 #define stp 2
 #define dir 3
 #define MS1 4
 #define MS2 5
 #define EN  6
 
-// button = b
-// led = l 
-// sizes: small, med, large
+// Buttons = b
+// Leds = l 
+// Sizes: small, med, large
 const int blarge=13;
 const int bmed=11;
 const int bsmall=12;
@@ -18,8 +18,8 @@ int bsmall_state = 0;
 int bmed_state = 0;
 int blarge_state = 0;
 
-char buttonInput[2]; // buffer to read from NANO
-char currentState = "S"; // keep track of size of skateboard
+char buttonInput[2]; // Buffer to read from NANO
+char currentState = "S"; // Keep track of size of skateboard
 char nextState = "S";
 
 const int FULL = 550;
@@ -38,8 +38,8 @@ void setup() {
   pinMode(lmed, OUTPUT);     
   pinMode(lsmall, OUTPUT);   
   
-  resetEDPins(); //Set step, direction, microstep and enable pins to default states
-  Serial.begin(9600); //Open Serial connection for debugging
+  resetEDPins(); // Set step, direction, microstep and enable pins to default states
+  Serial.begin(9600); // Open Serial connection for debugging
   digitalWrite(lsmall,HIGH);
 }
 
@@ -50,22 +50,17 @@ void loop() {
   bsmall_state = digitalRead(bsmall);
   
   nextState = "";
-  if (buttonInput[0]!="") { // something from nano 
+  if (buttonInput[0]!="") { // Input from Nano 
     nextState = buttonInput[0];
   } 
-   if (bsmall_state == HIGH) {
+  if (bsmall_state == HIGH) {
     nextState = 'S';
-    Serial.println("SMALL");
   } 
-
-  if (bmed_state == HIGH) {
+  else if (bmed_state == HIGH) {
     nextState = 'M';
-    Serial.println("MED");
   } 
-
-  if (blarge_state == HIGH) {
+  else if (blarge_state == HIGH) {
     nextState = 'L';
-    Serial.println("LARGE");
   }
   
   digitalWrite(EN, LOW); // Pull enable pin low to allow motor control
@@ -76,22 +71,10 @@ void loop() {
     digitalWrite(llarge, HIGH); // Turn on large led
     
     if (currentState == 'S') { // S -> L
-      digitalWrite(dir, LOW);
-      for(int x= 1; x<FULL-10; x++) {
-        digitalWrite(stp,HIGH); // Trigger one step forward
-        delay(1);
-        digitalWrite(stp,LOW); // Pull step pin low so it can be triggered again
-        delay(1);
-      }
+      growBoard(FULL-10);
       
     } else if (currentState == 'M') { // M -> L
-      digitalWrite(dir, LOW);
-      for(int x= 1; x<HALF-25; x++) {
-        digitalWrite(stp,HIGH); 
-        delay(1);
-        digitalWrite(stp,LOW); 
-        delay(1);
-      }
+      growBoard(HALF-25);
     } 
     currentState = 'L';
     
@@ -101,47 +84,23 @@ void loop() {
     digitalWrite(llarge, LOW);
     
     if (currentState == 'S') { // S -> M
-        digitalWrite(dir, LOW);
-        for(int x= 1; x<HALF-8; x++) {
-          digitalWrite(stp,HIGH); 
-          delay(1);
-          digitalWrite(stp,LOW); 
-          delay(1);
-        }
+        growBoard(HALF-12);
         
     } else if (currentState == 'L') {
-      digitalWrite(dir, HIGH); // L -> M 
-      for(int x= 1; x<HALF-20; x++) {
-        digitalWrite(stp,HIGH); 
-        delay(1);
-        digitalWrite(stp,LOW); 
-        delay(1);
-      }
+      shrinkBoard(HALF-20);
     } 
     currentState = 'M';
     
   } else if (nextState =='S') { // Want at smallest setting
     digitalWrite(lsmall, HIGH);
-    digitalWrite(lmed, LOW);
+    digitalWrite(lmed, LOW); // Turn on small led
     digitalWrite(llarge, LOW);
     
     if (currentState == 'M') { // M -> S
-      digitalWrite(dir, HIGH);
-      for(int x= 1; x<HALF-8; x++) {
-        digitalWrite(stp,HIGH); 
-        delay(1);
-        digitalWrite(stp,LOW); 
-        delay(1);
-      }
+      shrinkBoard(HALF-8);
       
     } else if (currentState == 'L') { // L -> S
-      digitalWrite(dir, HIGH);
-      for(int x= 1; x<FULL-12; x++) {
-        digitalWrite(stp,HIGH); 
-        delay(1);
-        digitalWrite(stp,LOW); 
-        delay(1);
-      }
+      shrinkBoard(FULL-12);
     } 
     currentState = 'S';
   }
@@ -149,27 +108,27 @@ void loop() {
 
 // Grow board by step steps
 void growBoard(int steps) {  
-  digitalWrite(dir, LOW); // forwards
+  digitalWrite(dir, LOW); // Forwards
   for(int x=1; x<steps; x++) { 
-    digitalWrite(stp,HIGH); //Trigger one step forward
+    digitalWrite(stp,HIGH); // Trigger one step forward
     delay(1);
-    digitalWrite(stp,LOW); //Pull step pin low so it can be triggered again
+    digitalWrite(stp,LOW); // Pull step pin low so it can be triggered again
     delay(1);
   }
 }
 
 // Shrink board by steps steps
 void shrinkBoard(int steps) {  
-  digitalWrite(dir, HIGH); // backwards
+  digitalWrite(dir, HIGH); // Backwards
   for(int x=1; x<steps; x++) { 
-    digitalWrite(stp,HIGH); //Trigger one step forward
+    digitalWrite(stp,HIGH); // Trigger one step forward
     delay(1);
-    digitalWrite(stp,LOW); //Pull step pin low so it can be triggered again
+    digitalWrite(stp,LOW); // Pull step pin low so it can be triggered again
     delay(1);
   }
 }
 
-//Reset Easy Driver pins to default states
+// Reset Easy Driver pins to default states
 void resetEDPins() {
   digitalWrite(stp, LOW);
   digitalWrite(dir, LOW);
